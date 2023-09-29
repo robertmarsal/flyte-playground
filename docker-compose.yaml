@@ -1,0 +1,8 @@
+version: '2'
+
+services:
+  spacyapi:
+    image: jgontrum/spacyapi:en_v2
+    ports:
+      - "127.0.0.1:8080:80"
+    restart: always
