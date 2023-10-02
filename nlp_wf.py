@@ -1,15 +1,16 @@
-from typing import List, Dict, TypedDict
+from typing import List, Dict
 import json
 import requests
 
-from flytekit import task, workflow
+from flytekit import task, workflow, ImageSpec
 from random import randint
-import gutenbergpy.textget
 
-SPACY_URL = "http://localhost:8080/ent"
+SPACY_URL = "http://host.docker.internal:8080/ent"
 
-@task
+@task(container_image="localhost:30000/retrieve-books:latest")
 def retrieve_books() -> List[str]:
+    import gutenbergpy.textget
+
     random_book_ids = []
     for i in range(1):  # tweak for more books at once
         # this might include duplicates, not a worry for now
@@ -29,9 +30,9 @@ def to_sentences(texts: List[str]) -> List[List[str]]:
     for text in texts:
         sentences = []
         for candidate in text.split("\n"):
-            if len(candidate) > 50: # only consider sentences with more than 50 characters
+            if len(candidate) > 50:  # only consider sentences with more than 50 characters
                 sentences.append(candidate)
-            if len(sentences) == 10: # tweak for more sentences at once
+            if len(sentences) == 10:  # tweak for more sentences at once
                 break
 
         texts_sentences.append(sentences)
@@ -64,6 +65,7 @@ def nlp_wf() -> None:
     sentences = to_sentences(texts=texts)
     sentences_with_entities = entity_extraction(texts_sentences=sentences)
     print_sentences(sentences_with_entities=sentences_with_entities)
+
 
 if __name__ == "__main__":
     print(f"Running nlp_wf() {nlp_wf()}")
